@@ -42,9 +42,9 @@ async def on_message(message):
         return
     if(contains_link(message.content)==False):
         if(message.author.nick==None):
-            last5.append("["+message.author.global_name+"]: "+message.content+"\n")
+            last5.append("["+message.author.global_name+" said]: "+message.content+"\n")
         else:
-            last5.append("["+message.author.nick+"]: "+message.content+"\n")
+            last5.append("["+message.author.nick+" said]: "+message.content+"\n")
     if ascii_sum(message.content)%3==0:
         orwell=response()
         await message.channel.send(orwell)
