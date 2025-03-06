@@ -14,6 +14,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="-", intents=intents)
 
 last5=deque(maxlen=5)
+frequency=7
 
 with open('prompt.txt', 'r') as file:
     prompt=file.read()
@@ -37,17 +38,23 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    #print(message)
+    global frequency
+    print(message.content)
     if message.author == bot.user:
         return
-    if(contains_link(message.content)==False):
+    if(contains_link(message.content)==False or not message.content.startswith("-")):
         if(message.author.nick==None):
             last5.append("["+message.author.global_name+" said]: "+message.content+"\n")
         else:
             last5.append("["+message.author.nick+" said]: "+message.content+"\n")
-    #make mod non-prime to increase message frequency
-    if ascii_sum(message.content)%6==0:
+    if ascii_sum(message.content)%frequency==0 or "orwell" in message.content.lower():
         orwell=response()
         await message.channel.send(orwell)
+    await bot.process_commands(message)
+
+@bot.command()
+async def freqmod(ctx, number:int):
+    global frequency
+    frequency=number
 
 bot.run(DISCORD_API_KEY)
