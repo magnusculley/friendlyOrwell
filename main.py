@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix="-", intents=intents)
 bot.frequency=7
 bot.memory=5
 
-last5=deque(maxlen=bot.memory)
+log=deque(maxlen=bot.memory)
 
 with open('prompt.txt', 'r') as file:
     prompt=file.read()
@@ -29,7 +29,7 @@ def ascii_sum(message:str)->int:
     return sum(ord(char) for char in message)
 
 def response()->str:
-    messages=list(last5)
+    messages=list(log)
     messages="".join(messages)
     print(messages)
     return genai_client.models.generate_content(model="gemini-2.0-flash-lite", contents=(prompt+messages)).text
@@ -41,16 +41,18 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     #print(message.content)
+    if not contains_link(message.content) and not message.content.startswith("-"):
+        author_name = message.author.nick if message.author.nick else message.author.global_name
+        log.append(f"[{author_name} said]: {message.content}\n")
+
     if message.author == bot.user:
+        await bot.process_commands(message)
         return
-    if(contains_link(message.content)==False and not message.content.startswith("-")):
-        if(message.author.nick==None):
-            last5.append("["+message.author.global_name+" said]: "+message.content+"\n")
-        else:
-            last5.append("["+message.author.nick+" said]: "+message.content+"\n")
+
     if bot.frequency and ("orwell" in message.content.lower() or ascii_sum(message.content) % bot.frequency == 0):
         orwell=response()
         await message.channel.send(orwell)
+
     await bot.process_commands(message)
 
 @bot.command()
