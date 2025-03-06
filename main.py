@@ -43,6 +43,8 @@ async def on_message(message):
     #print(message.content)
     if not contains_link(message.content) and not message.content.startswith("-"):
         author_name = message.author.nick if message.author.nick else message.author.global_name
+        if message.author==bot.user:
+            author_name = "Orwell"
         log.append(f"[{author_name} said]: {message.content}\n")
 
     if message.author == bot.user:
