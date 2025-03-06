@@ -11,10 +11,12 @@ DISCORD_API_KEY = os.environ.get('DISCORD_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 genai_client = genai.Client(api_key=GEMINI_API_KEY)
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="-", intents=intents)
 
-last5=deque(maxlen=5)
-frequency=7
+bot = commands.Bot(command_prefix="-", intents=intents)
+bot.frequency=7
+bot.memory=5
+
+last5=deque(maxlen=bot.memory)
 
 with open('prompt.txt', 'r') as file:
     prompt=file.read()
@@ -38,23 +40,25 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    global frequency
-    print(message.content)
+    #print(message.content)
     if message.author == bot.user:
         return
-    if(contains_link(message.content)==False or not message.content.startswith("-")):
+    if(contains_link(message.content)==False and not message.content.startswith("-")):
         if(message.author.nick==None):
             last5.append("["+message.author.global_name+" said]: "+message.content+"\n")
         else:
             last5.append("["+message.author.nick+" said]: "+message.content+"\n")
-    if ascii_sum(message.content)%frequency==0 or "orwell" in message.content.lower():
+    if bot.frequency and ("orwell" in message.content.lower() or ascii_sum(message.content) % bot.frequency == 0):
         orwell=response()
         await message.channel.send(orwell)
     await bot.process_commands(message)
 
 @bot.command()
 async def freqmod(ctx, number:int):
-    global frequency
-    frequency=number
+    bot.frequency=number
+
+@bot.command()
+async def memory(ctx, number:int):
+    bot.memory=number
 
 bot.run(DISCORD_API_KEY)
